@@ -1,5 +1,6 @@
 package com.geveit.melod.song;
 
+import com.geveit.melod.exception.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +28,7 @@ public class SongController {
     public ResponseEntity getById(@PathVariable long id) {
         SongOutput output = songRepository.findById(id)
                 .map(e -> new SongOutput(e.getId(), e.getWorkingTitle()))
-                .orElseThrow(() -> new IllegalArgumentException("Invalid song id"));
+                .orElseThrow(EntityNotFoundException::new);
 
         return ResponseEntity.ok(output);
     }
@@ -44,7 +45,7 @@ public class SongController {
     @PutMapping("/{id}")
     public ResponseEntity update(@PathVariable long id, @RequestBody SongInput input) {
         Song song = songRepository.findById(id)
-                .orElseThrow(IllegalArgumentException::new);
+                .orElseThrow(EntityNotFoundException::new);
         song.setWorkingTitle(input.getWorkingTitle());
 
         Song updatedSong = songRepository.save(song);
@@ -56,7 +57,7 @@ public class SongController {
     @DeleteMapping("/{id}")
     public ResponseEntity delete(@PathVariable long id) {
         Song song = songRepository.findById(id)
-                .orElseThrow(IllegalArgumentException::new);
+                .orElseThrow(EntityNotFoundException::new);
         songRepository.delete(song);
         return ResponseEntity.status(HttpStatus.OK).build();
     }

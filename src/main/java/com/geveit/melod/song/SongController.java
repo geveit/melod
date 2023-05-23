@@ -1,6 +1,5 @@
 package com.geveit.melod.song;
 
-import com.geveit.melod.exception.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,54 +10,39 @@ import java.util.List;
 @RequestMapping("/songs")
 public class SongController {
 
-    private final SongRepository songRepository;
+    private final SongService songService;
 
-    public SongController(SongRepository songRepository) {
-        this.songRepository = songRepository;
+    public SongController(SongService songService) {
+        this.songService = songService;
     }
 
     @GetMapping
     public ResponseEntity getAll() {
-        List<SongOutput> output =  songRepository.findAll().stream().map(e -> new SongOutput(e.getId(), e.getWorkingTitle())).toList();
-
+        List<SongOutput> output = songService.getAll();
         return ResponseEntity.ok(output);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity getById(@PathVariable long id) {
-        SongOutput output = songRepository.findById(id)
-                .map(e -> new SongOutput(e.getId(), e.getWorkingTitle()))
-                .orElseThrow(EntityNotFoundException::new);
-
+        SongOutput output = songService.getById(id);
         return ResponseEntity.ok(output);
     }
 
     @PostMapping
     public ResponseEntity create(@RequestBody SongInput input) {
-        Song song = new Song();
-        song.setWorkingTitle(input.getWorkingTitle());
-        Song newSong = songRepository.save(song);
-        SongOutput output = new SongOutput(newSong.getId(), newSong.getWorkingTitle());
+        SongOutput output = songService.create(input);
         return ResponseEntity.ok(output);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity update(@PathVariable long id, @RequestBody SongInput input) {
-        Song song = songRepository.findById(id)
-                .orElseThrow(EntityNotFoundException::new);
-        song.setWorkingTitle(input.getWorkingTitle());
-
-        Song updatedSong = songRepository.save(song);
-        SongOutput output = new SongOutput(updatedSong.getId(), updatedSong.getWorkingTitle());
-
+        SongOutput output = songService.update(id, input);
         return ResponseEntity.ok(output);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity delete(@PathVariable long id) {
-        Song song = songRepository.findById(id)
-                .orElseThrow(EntityNotFoundException::new);
-        songRepository.delete(song);
+        songService.delete(id);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
